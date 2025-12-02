@@ -33,6 +33,7 @@ jobs:
   unit-tests:
     needs: build
     runs-on: ubuntu-latest
+    if: contains(join(github.event.head_commit.modified, ','), 'example-application/')
     steps:
       - uses: actions/checkout@v4
       - name: Setup Node.js
@@ -46,6 +47,7 @@ jobs:
   nestjs-tests:
     needs: build
     runs-on: ubuntu-latest
+    if: contains(join(github.event.head_commit.modified, ','), 'recipes/nestjs/')
     steps:
       - uses: actions/checkout@v4
       - name: Setup Node.js
