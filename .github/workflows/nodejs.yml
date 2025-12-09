@@ -85,8 +85,8 @@ jobs:
         run: npm test
 
   nestjs-tests:
-    needs: build
-    if: needs.build.outputs.any_changed == 'true'
+    needs: [build, unit-tests]
+    if: needs.build.outputs.any_changed == 'true' && needs.unit-tests.result == 'success'
     runs-on: ubuntu-latest
 
     steps:
