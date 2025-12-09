@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      # on garde ça pour les étapes suivantes du TD (tests conditionnels)
+      # on garde ça pour les étapes suivantes du TD
       changed_files: ${{ steps.changed-files.outputs.all_changed_files }}
 
     steps:
