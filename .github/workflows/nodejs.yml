@@ -15,6 +15,11 @@ on:
       - "recipes/**"
       - "anti-patterns/**"
 
+concurrency:
+  group: ci-${{ github.ref_name }}
+  cancel-in-progress: true
+  #run 1
+
 jobs:
   build:
     runs-on: ubuntu-latest
