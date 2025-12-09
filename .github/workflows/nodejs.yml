@@ -2,25 +2,27 @@ name: CI Green IT
 
 on:
   push:
-    branches: [ master]
-    paths-ignore:
-      - 'docs/**'
-      - 'README.md'
-      - '.github/**/*.md'
+    branches: [ master ]
+    paths:
+      - ".github/workflows/**"
+      - "example-application/**"
+      - "recipes/**"
+      - "anti-patterns/**"
   pull_request:
-    branches: [ master]
-
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+    branches: [ master ]
+    paths:
+      - "example-application/**"
+      - "recipes/**"
+      - "anti-patterns/**"
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     outputs:
-      app_changed: ${{ steps.changes.outputs.app }}
-      nestjs_changed: ${{ steps.changes.outputs.nestjs }}
-      docs_changed: ${{ steps.changes.outputs.docs }}
+      # on garde ça pour les étapes suivantes du TD (tests conditionnels)
+      changed_files: ${{ steps.changed-files.outputs.all_changed_files }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,20 +30,16 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
 
       - name: Detect changed paths
-        id: changes
-        uses: dorny/paths-filter@v3
+        id: changed-files
+        uses: tj-actions/changed-files@v45
         with:
-          filters: |
-            app:
-              - 'example-application/**'
-            nestjs:
-              - 'recipes/nestjs/**'
-            docs:
-              - 'docs/**'
-              - 'README.md'
+          files: |
+            example-application/**
+            recipes/**
+            anti-patterns/**
 
       - name: Cache node_modules
         uses: actions/cache@v4
@@ -52,13 +50,12 @@ jobs:
             ${{ runner.os }}-node-
 
       - name: Install dependencies
-        if: ${{ steps.changes.outputs.docs != 'true' }}
         run: npm i
 
   unit-tests:
     needs: build
     runs-on: ubuntu-latest
-    if: ${{ needs.build.outputs.app_changed == 'true' }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -66,15 +63,18 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
 
-      - name: Restore node_modules cache
+      - name: Cache node_modules
         uses: actions/cache@v4
         with:
           path: node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm i
 
       - name: Run unit tests
         run: npm test
@@ -82,7 +82,7 @@ jobs:
   nestjs-tests:
     needs: build
     runs-on: ubuntu-latest
-    if: ${{ needs.build.outputs.nestjs_changed == 'true' }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -90,15 +90,18 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
 
-      - name: Restore node_modules cache
+      - name: Cache node_modules
         uses: actions/cache@v4
         with:
           path: node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm i
 
       - name: Run NestJS tests
         run: npm run test:nestjs
